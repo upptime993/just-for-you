@@ -144,7 +144,7 @@ export default function ConfessionPage({ isActive }) {
 
   /* ── WhatsApp redirect ── */
   const sendToWhatsApp = () => {
-    const text = `Hai sayang 💕\n\nAku MAU jadi pacar kamu!\n\nKenapa aku mau sama kamu:\n${letter}\n\n— from "Just For You" 💌`
+    const text = `Hai sayang 💕\n\nAku MAU jadi pacar kamu!\n\nKenapa aku mau sama kamu:\n${letter}\n\n— from "Gadis pendek imut" 💌`
     const url = `https://wa.me/6281774954859?text=${encodeURIComponent(text)}`
     window.open(url, '_blank')
   }
