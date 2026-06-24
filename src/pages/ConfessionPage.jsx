@@ -95,7 +95,6 @@ export default function ConfessionPage({ isActive }) {
   // Phases: asking | rejected | accepted | writing
   const [phase, setPhase] = useState('asking')
   const [enggaCount, setEnggaCount] = useState(0)
-  const [enggaPos, setEnggaPos] = useState(null)
   const [msgIndex, setMsgIndex] = useState(0)
   const [showWriting, setShowWriting] = useState(false)
   const [letter, setLetter] = useState('')
@@ -107,7 +106,6 @@ export default function ConfessionPage({ isActive }) {
     if (!isActive) {
       setPhase('asking')
       setEnggaCount(0)
-      setEnggaPos(null)
       setMsgIndex(0)
       setShowWriting(false)
       setLetter('')
@@ -115,8 +113,8 @@ export default function ConfessionPage({ isActive }) {
     }
   }, [isActive])
 
-  /* ── ENGGA dodge logic ── */
-  const dodgeEngga = useCallback(() => {
+  /* ── ENGGA click logic ── */
+  const handleEnggaClick = useCallback(() => {
     const next = enggaCount + 1
     if (next >= 3) {
       setPhase('rejected')
@@ -124,13 +122,6 @@ export default function ConfessionPage({ isActive }) {
       return
     }
     setEnggaCount(next)
-    // Random position within safe bounds
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-    const bw = 200, bh = 56
-    const x = 40 + Math.random() * (vw - bw - 80)
-    const y = 80 + Math.random() * (vh - bh - 160)
-    setEnggaPos({ x, y })
   }, [enggaCount])
 
   /* ── MAU accepted logic ── */
@@ -161,7 +152,6 @@ export default function ConfessionPage({ isActive }) {
   const retryAsk = () => {
     setPhase('asking')
     setEnggaCount(0)
-    setEnggaPos(null)
     setShowRetry(false)
   }
 
@@ -204,19 +194,15 @@ export default function ConfessionPage({ isActive }) {
                 MAU 💕
               </motion.button>
 
-              {/* ENGGA button — dodges */}
+              {/* ENGGA button */}
               <motion.button
                 className="confession-btn confession-btn--engga"
-                onClick={(e) => { e.stopPropagation(); dodgeEngga() }}
-                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); handleEnggaClick() }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, x: 30 }}
-                animate={{
-                  opacity: 1,
-                  x: enggaPos ? enggaPos.x - window.innerWidth / 2 + 100 : 0,
-                  y: enggaPos ? enggaPos.y - window.innerHeight / 2 + 28 : 0,
-                }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                style={{ position: enggaPos ? 'fixed' : 'relative', left: enggaPos ? 0 : undefined, top: enggaPos ? 0 : undefined, zIndex: 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, type: 'spring', stiffness: 120 }}
               >
                 {ENGGA_TEXTS[Math.min(enggaCount, ENGGA_TEXTS.length - 1)]}
               </motion.button>
