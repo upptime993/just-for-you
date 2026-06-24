@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BacksoundContext } from '../App'
 
-export default function VoiceNotePlayer({ isActive }) {
+export default function VoiceNotePlayer({ isActive, onEnded }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -17,6 +17,11 @@ export default function VoiceNotePlayer({ isActive }) {
   const animFrameRef = useRef(null)
   const progressRef = useRef(null)
   const connectedRef = useRef(false)
+
+  const onEndedRef = useRef(onEnded)
+  useEffect(() => {
+    onEndedRef.current = onEnded
+  }, [onEnded])
 
   // Initialize audio element
   useEffect(() => {
@@ -33,6 +38,9 @@ export default function VoiceNotePlayer({ isActive }) {
       setCurrentTime(0)
       audio.currentTime = 0
       resumeBacksound()
+      if (onEndedRef.current) {
+        onEndedRef.current()
+      }
     })
 
     audio.addEventListener('timeupdate', () => {

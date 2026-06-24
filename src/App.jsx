@@ -6,6 +6,7 @@ import LoadingScreen from './components/LoadingScreen'
 import MobileGate from './components/MobileGate'
 import SlideNavigation from './components/SlideNavigation'
 import VoiceNotePage from './pages/VoiceNotePage'
+import ConfessionPage from './pages/ConfessionPage'
 
 /* ─── Backsound Context ─── */
 export const BacksoundContext = createContext({
@@ -24,6 +25,7 @@ const SLIDES = [
   { type: 'video', src: '/assets/videos/slide-7-celebrating.mp4', label: 'Merayakan' },
   { type: 'video', src: '/assets/videos/slide-8-closing.mp4', label: 'Penutup' },
   { type: 'component', component: VoiceNotePage, label: 'Voice Note' },
+  { type: 'component', component: ConfessionPage, label: 'Confession' },
 ]
 
 const VIDEO_SOURCES = SLIDES

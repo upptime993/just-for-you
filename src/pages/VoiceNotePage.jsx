@@ -31,7 +31,7 @@ function FloatingHeart({ id }) {
   )
 }
 
-export default function VoiceNotePage({ isActive }) {
+export default function VoiceNotePage({ isActive, goToSlide, currentSlide }) {
   const [hearts, setHearts] = useState([])
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function VoiceNotePage({ isActive }) {
           transition={{ delay: 1.4, duration: 0.5 }}
         />
 
-        <VoiceNotePlayer isActive={isActive} />
+        <VoiceNotePlayer isActive={isActive} onEnded={() => goToSlide(currentSlide + 1)} />
       </motion.div>
 
       {/* Footer */}
