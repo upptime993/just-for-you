@@ -28,9 +28,11 @@ const SLIDES = [
   { type: 'component', component: ConfessionPage, label: 'Confession' },
 ]
 
-const VIDEO_SOURCES = SLIDES
-  .filter((s) => s.type === 'video')
-  .map((s) => s.src)
+const PRELOAD_SOURCES = [
+  ...SLIDES.filter((s) => s.type === 'video').map((s) => s.src),
+  '/assets/backsound.mp3',
+  '/assets/voice-note.mp3',
+]
 
 /* ─── App States ─── */
 const STATE = {
@@ -51,9 +53,9 @@ function App() {
   const backsoundRef = useRef(null)
   const backsoundStarted = useRef(false)
 
-  // Initialize backsound audio element
+  // Initialize backsound audio element structure
   useEffect(() => {
-    const audio = new Audio('/assets/backsound.mp3')
+    const audio = new Audio()
     audio.loop = true
     audio.volume = 0.35
     audio.preload = 'auto'
@@ -128,8 +130,16 @@ function App() {
     [pauseBacksound, resumeBacksound]
   )
 
-  // Preload all videos
-  const { progress, isLoaded, blobUrls } = useVideoPreloader(VIDEO_SOURCES)
+  // Preload all resources
+  const { progress, isLoaded, blobUrls } = useVideoPreloader(PRELOAD_SOURCES)
+
+  // Dynamically set backsound source once preloaded
+  useEffect(() => {
+    const cachedUrl = blobUrls['/assets/backsound.mp3']
+    if (cachedUrl && backsoundRef.current && !backsoundRef.current.src) {
+      backsoundRef.current.src = cachedUrl
+    }
+  }, [blobUrls])
 
   // Check if device is mobile
   const isMobile = useMemo(() => {
@@ -286,6 +296,7 @@ function App() {
                 isActive={true}
                 goToSlide={goToSlide}
                 currentSlide={currentSlide}
+                blobUrls={blobUrls}
               />
             )}
           </motion.div>

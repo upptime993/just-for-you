@@ -70,7 +70,8 @@ export default function useVideoPreloader(videoSources) {
             setProgress(Math.min(loadedBytes / totalBytes, 1))
           }
 
-          const blob = new Blob(chunks, { type: 'video/mp4' })
+          const mimeType = src.endsWith('.mp3') ? 'audio/mpeg' : 'video/mp4'
+          const blob = new Blob(chunks, { type: mimeType })
           results[src] = URL.createObjectURL(blob)
         } catch (err) {
           if (err.name !== 'AbortError') {

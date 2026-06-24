@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BacksoundContext } from '../App'
 
-export default function VoiceNotePlayer({ isActive, onEnded }) {
+export default function VoiceNotePlayer({ isActive, onEnded, audioUrl }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -25,7 +25,7 @@ export default function VoiceNotePlayer({ isActive, onEnded }) {
 
   // Initialize audio element
   useEffect(() => {
-    const audio = new Audio('/assets/voice-note.mp3')
+    const audio = new Audio(audioUrl || '/assets/voice-note.mp3')
     audio.preload = 'auto'
     audioRef.current = audio
 
