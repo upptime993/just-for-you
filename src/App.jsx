@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, createContext } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import useVideoPreloader from './hooks/useVideoPreloader'
@@ -6,6 +6,12 @@ import LoadingScreen from './components/LoadingScreen'
 import MobileGate from './components/MobileGate'
 import SlideNavigation from './components/SlideNavigation'
 import VoiceNotePage from './pages/VoiceNotePage'
+
+/* ─── Backsound Context ─── */
+export const BacksoundContext = createContext({
+  pauseBacksound: () => {},
+  resumeBacksound: () => {},
+})
 
 /* ─── Slide Configuration ─── */
 const SLIDES = [
@@ -16,6 +22,7 @@ const SLIDES = [
   { type: 'video', src: '/assets/videos/slide-5-cherished.mp4', label: 'Kenangan Indah' },
   { type: 'video', src: '/assets/videos/slide-6-special.mp4', label: 'Yang Spesial' },
   { type: 'video', src: '/assets/videos/slide-7-celebrating.mp4', label: 'Merayakan' },
+  { type: 'video', src: '/assets/videos/slide-8-closing.mp4', label: 'Penutup' },
   { type: 'component', component: VoiceNotePage, label: 'Voice Note' },
 ]
 
@@ -37,6 +44,87 @@ function App() {
   const videoRefs = useRef({})
   const touchStartRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef(null)
+
+  /* ─── Backsound ─── */
+  const backsoundRef = useRef(null)
+  const backsoundStarted = useRef(false)
+
+  // Initialize backsound audio element
+  useEffect(() => {
+    const audio = new Audio('/assets/backsound.mp3')
+    audio.loop = true
+    audio.volume = 0.35
+    audio.preload = 'auto'
+    backsoundRef.current = audio
+
+    return () => {
+      audio.pause()
+      audio.src = ''
+    }
+  }, [])
+
+  // Start backsound on first user interaction when app is ready
+  useEffect(() => {
+    if (appState !== STATE.READY) return
+    if (backsoundStarted.current) return
+
+    const startBacksound = () => {
+      if (backsoundStarted.current) return
+      backsoundStarted.current = true
+      backsoundRef.current?.play().catch(() => {})
+      // Clean up listeners after first interaction
+      window.removeEventListener('click', startBacksound)
+      window.removeEventListener('touchstart', startBacksound)
+      window.removeEventListener('keydown', startBacksound)
+    }
+
+    window.addEventListener('click', startBacksound, { once: true })
+    window.addEventListener('touchstart', startBacksound, { once: true })
+    window.addEventListener('keydown', startBacksound, { once: true })
+
+    return () => {
+      window.removeEventListener('click', startBacksound)
+      window.removeEventListener('touchstart', startBacksound)
+      window.removeEventListener('keydown', startBacksound)
+    }
+  }, [appState])
+
+  // Backsound control methods (passed to VoiceNotePage via context)
+  const pauseBacksound = useCallback(() => {
+    const audio = backsoundRef.current
+    if (!audio) return
+    // Smooth fade out
+    const fadeOut = setInterval(() => {
+      if (audio.volume > 0.05) {
+        audio.volume = Math.max(0, audio.volume - 0.05)
+      } else {
+        audio.volume = 0
+        audio.pause()
+        clearInterval(fadeOut)
+      }
+    }, 50)
+  }, [])
+
+  const resumeBacksound = useCallback(() => {
+    const audio = backsoundRef.current
+    if (!audio) return
+    audio.volume = 0
+    audio.play().catch(() => {})
+    // Smooth fade in
+    const fadeIn = setInterval(() => {
+      if (audio.volume < 0.3) {
+        audio.volume = Math.min(0.35, audio.volume + 0.05)
+      } else {
+        audio.volume = 0.35
+        clearInterval(fadeIn)
+      }
+    }, 50)
+  }, [])
+
+  const backsoundContextValue = useMemo(
+    () => ({ pauseBacksound, resumeBacksound }),
+    [pauseBacksound, resumeBacksound]
+  )
 
   // Preload all videos
   const { progress, isLoaded, blobUrls } = useVideoPreloader(VIDEO_SOURCES)
@@ -168,47 +256,49 @@ function App() {
   const slide = SLIDES[currentSlide]
 
   return (
-    <div ref={containerRef} className="app-container">
-      {/* Slide Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide}
-          className="slide-viewport"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-        >
-          {slide.type === 'video' ? (
-            <video
-              ref={(el) => { videoRefs.current[currentSlide] = el }}
-              className="slide-video"
-              src={blobUrls[slide.src] || slide.src}
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-              onEnded={(e) => { e.target.pause() }}
-            />
-          ) : (
-            <slide.component
-              isActive={true}
-              goToSlide={goToSlide}
-              currentSlide={currentSlide}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+    <BacksoundContext.Provider value={backsoundContextValue}>
+      <div ref={containerRef} className="app-container">
+        {/* Slide Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            className="slide-viewport"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+          >
+            {slide.type === 'video' ? (
+              <video
+                ref={(el) => { videoRefs.current[currentSlide] = el }}
+                className="slide-video"
+                src={blobUrls[slide.src] || slide.src}
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                onEnded={(e) => { e.target.pause() }}
+              />
+            ) : (
+              <slide.component
+                isActive={true}
+                goToSlide={goToSlide}
+                currentSlide={currentSlide}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Navigation Overlay */}
-      <SlideNavigation
-        current={currentSlide}
-        total={SLIDES.length}
-        onPrev={goPrev}
-        onNext={goNext}
-        onGoTo={goToSlide}
-      />
-    </div>
+        {/* Navigation Overlay */}
+        <SlideNavigation
+          current={currentSlide}
+          total={SLIDES.length}
+          onPrev={goPrev}
+          onNext={goNext}
+          onGoTo={goToSlide}
+        />
+      </div>
+    </BacksoundContext.Provider>
   )
 }
 

@@ -1,11 +1,14 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { BacksoundContext } from '../App'
 
 export default function VoiceNotePlayer({ isActive }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [bars, setBars] = useState(new Array(50).fill(4))
+
+  const { pauseBacksound, resumeBacksound } = useContext(BacksoundContext)
 
   const audioRef = useRef(null)
   const audioContextRef = useRef(null)
@@ -29,6 +32,7 @@ export default function VoiceNotePlayer({ isActive }) {
       setIsPlaying(false)
       setCurrentTime(0)
       audio.currentTime = 0
+      resumeBacksound()
     })
 
     audio.addEventListener('timeupdate', () => {
@@ -135,7 +139,9 @@ export default function VoiceNotePlayer({ isActive }) {
       if (isPlaying) {
         audioRef.current.pause()
         setIsPlaying(false)
+        resumeBacksound()
       } else {
+        pauseBacksound()
         await audioRef.current.play()
         setIsPlaying(true)
       }
@@ -143,6 +149,7 @@ export default function VoiceNotePlayer({ isActive }) {
       console.warn('Playback failed:', err)
       // Last resort: try playing without analyzer
       try {
+        pauseBacksound()
         audioRef.current.play()
         setIsPlaying(true)
       } catch (_) {}
