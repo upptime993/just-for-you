@@ -152,6 +152,7 @@ export default function MobileGate({ onDismiss }) {
               {step === 1 ? (
                 <>
                   <h2 className="mobile-gate-title">Untuk pengalaman terbaik</h2>
+                  <br></br>
                   <p className="mobile-gate-subtitle">
                     Buka dalam mode layar penuh untuk menikmati setiap momen
                   </p>
@@ -172,6 +173,7 @@ export default function MobileGate({ onDismiss }) {
               ) : (
                 <>
                   <h2 className="mobile-gate-title">Putar HP-mu ke landscape</h2>
+                  <br></br>
                   <p className="mobile-gate-subtitle">
                     Miringkan HP-mu agar tampilan lebih sempurna
                   </p>
